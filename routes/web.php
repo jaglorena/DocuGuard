@@ -5,7 +5,6 @@ use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\GraficoController;
 use App\Http\Controllers\PermisoController;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
