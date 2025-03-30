@@ -4,8 +4,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PermisoController;
-
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+use App\Http\Controllers\DocumentoController;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -43,5 +42,10 @@ Route::get('/dashboard', function () {
 
 
 Route::middleware(['auth'])->group(function () {
+
+    // Permisos
     Route::resource('permisos', PermisoController::class)->except(['show']);
+
+    // Documentos
+    Route::resource('documentos', DocumentoController::class);
 });

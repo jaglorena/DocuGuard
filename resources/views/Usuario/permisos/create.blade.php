@@ -19,7 +19,7 @@
 
         <div class="mb-4">
             <label class="block font-semibold mb-1">Documento</label>
-            <select name="id_documento" class="w-full border px-3 py-2 rounded" required>
+            <select name="id_documento[]" multiple required class="w-full border px-3 py-2 rounded" required>
                 <option value="">Seleccione un documento</option>
                 @foreach ($documentos as $documento)
                     <option value="{{ $documento->id_documento }}">{{ $documento->titulo }}</option>
@@ -29,11 +29,11 @@
 
         <div class="mb-4">
             <label class="block font-semibold mb-1">Nivel de Acceso</label>
-            <select name="nivel_acceso" class="w-full border px-3 py-2 rounded" required>
-                <option value="lectura">Lectura</option>
-                <option value="escritura">Escritura</option>
-                <option value="eliminacion">Eliminación</option>
-            </select>
+            <div class="flex gap-4">
+                <label><input type="checkbox" name="nivel_acceso[]" value="lectura"> Lectura</label>
+                <label><input type="checkbox" name="nivel_acceso[]" value="escritura"> Escritura</label>
+                <label><input type="checkbox" name="nivel_acceso[]" value="eliminacion"> Eliminación</label>
+            </div>
         </div>
 
         <button type="submit" class="bg-[#155f82] text-white px-4 py-2 rounded hover:bg-[#134d6e]">Asignar</button>

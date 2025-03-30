@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Documento;
+use App\Models\Permiso;
+use App\Models\Usuario;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -12,9 +14,20 @@ class DocumentoController extends Controller
     public function index()
 {
     /** @var Usuario $usuario */
-      $usuario = Auth::user();
-    $usuarioId = 1;
-    /**$usuarioId = $usuario->id_usuario;*/
+    $usuario = Auth::user();
+
+    // Si es administrador, ve todos los documentos
+    if (strtolower($usuario->rol) === 'administrador') {
+        $documentos = Documento::with('usuario')->get();
+    } else {
+        $documentos = Documento::whereHas('permisos', function ($query) use ($usuario) {
+            $query->where('id_usuario', $usuario->id_usuario);
+        })->with('usuario')->get();
+    }
+
+    return view('documentos.index', compact('documentos'));
+    
+    $usuarioId = $usuario->id_usuario;
 
     $documentos = Documento::whereHas('permisos', function ($query) use ($usuarioId) {
             $query->where('id_usuario', $usuarioId);
@@ -25,28 +38,37 @@ class DocumentoController extends Controller
 
     public function store(Request $request)
     {
-        /**$usuario = Auth::user();*/
+        $usuario = Auth::user();
 
         $request->validate([
             'titulo' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'archivo' => 'required|file|mimes:pdf,doc,docx,txt',
-            'estado' => 'required|in:borrador,publicado',
+            'estado' => 'required|in:borrador,activo,archivado',
             'version' => 'required|string'
         ]);
 
         $rutaArchivo = $request->file('archivo')->store('documentos', 'public');
 
-        Documento::create([
+        $documento = Documento::create([
             'titulo' => $request->titulo,
             'descripcion' => $request->descripcion,
             'ruta_archivo' => $rutaArchivo,
             'fecha_subida' => now(),
             'version' => $request->version,
             'estado' => $request->estado,
-            /*'id_usuario_subida' => $usuario->id_usuario*/
-            'id_usuario_subida' => '1',
+            'id_usuario_subida' => $usuario->id_usuario
         ]);
+
+        foreach ($request->input('permisos', []) as $idUsuario => $niveles) {
+            foreach ($niveles as $nivel) {
+                Permiso::create([
+                    'id_documento' => $documento->id_documento,
+                    'id_usuario' => $idUsuario,
+                    'nivel_acceso' => $nivel,
+                ]);
+            }
+        }
 
         return redirect()->route('documentos.index')->with('success', 'Documento subido correctamente.');
     }
@@ -56,17 +78,28 @@ class DocumentoController extends Controller
         $documento = Documento::where('id_documento', $id)->firstOrFail();
 
         $versiones = Documento::where('titulo', $documento->titulo)
-                              ->orderBy('fecha_subida', 'desc')
-                              ->get();
+                            ->orderBy('fecha_subida', 'desc')
+                            ->get();
 
-        return view('documentos.mostrar', compact('documento', 'versiones'));
+        // 👇 Obtener los permisos asignados con info de usuario
+        $permisos = $documento->permisos()->with('usuario')->get();
+
+        return view('documentos.mostrar', compact('documento', 'versiones', 'permisos'));
     }
-
+    
     public function edit($id)
     {
         $documento = Documento::where('id_documento', $id)->firstOrFail();
-        return view('documentos.editar', compact('documento'));
+        $usuarios = Usuario::where('id_usuario', '!=', Auth::user()->id_usuario)->get();
+
+        // Permisos actuales agrupados por usuario
+        $permisosActuales = $documento->permisos->groupBy('id_usuario')->map(function ($grupo) {
+            return $grupo->pluck('nivel_acceso')->toArray();
+        });
+
+        return view('documentos.editar', compact('documento', 'usuarios', 'permisosActuales'));
     }
+
 
     public function update(Request $request, $id)
     {
@@ -84,7 +117,19 @@ class DocumentoController extends Controller
             'estado' => $request->estado
         ]);
 
-        return redirect()->route('documentos.index')->with('success', 'Documento actualizado correctamente.');
+        Permiso::where('id_documento', $documento->id_documento)->delete();
+
+        foreach ($request->input('permisos', []) as $idUsuario => $niveles) {
+            foreach ($niveles as $nivel) {
+                Permiso::create([
+                    'id_documento' => $documento->id_documento,
+                    'id_usuario' => $idUsuario,
+                    'nivel_acceso' => $nivel,
+                ]);
+            }
+        }        
+
+        return redirect()->route('documentos.index')->with('success', 'Documento y permisos actualizados correctamente.');
     }
 
     public function destroy($id)
@@ -98,5 +143,11 @@ class DocumentoController extends Controller
         $documento->delete();
 
         return redirect()->route('documentos.index')->with('success', 'Documento eliminado correctamente.');
+    }
+
+    public function create()
+    {
+        $usuarios = Usuario::where('id_usuario', '!=', Auth::user()->id_usuario)->get();
+        return view('documentos.crear', compact('usuarios'));
     }
 }

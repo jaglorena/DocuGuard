@@ -26,14 +26,25 @@ class PermisoController extends Controller
     {
         $request->validate([
             'id_usuario' => 'required|exists:usuarios,id_usuario',
-            'id_documento' => 'required|exists:documentos,id_documento',
-            'nivel_acceso' => 'required|in:lectura,escritura,eliminacion',
-        ]);
+            'id_documento' => 'required|array|min:1',
+            'id_documento.*' => 'exists:documentos,id_documento',
+            'nivel_acceso' => 'required|array|min:1',
+            'nivel_acceso.*' => 'in:lectura,escritura,eliminacion',
+        ]);        
+        
+        foreach ($request->id_documento as $documentoId) {
+            foreach ($request->nivel_acceso as $permiso) {
+                Permiso::firstOrCreate([
+                    'id_usuario' => $request->id_usuario,
+                    'id_documento' => $documentoId,
+                    'nivel_acceso' => $permiso
+                ]);
+            }
+        }
 
-        Permiso::create($request->all());
-
-        return redirect()->route('permisos.index')->with('success', 'Permiso asignado correctamente.');
+        return redirect()->route('permisos.index')->with('success', 'Permisos asignados correctamente.');
     }
+
 
     public function edit($id)
     {
@@ -45,17 +56,25 @@ class PermisoController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'id_usuario' => 'required|exists:usuarios,id_usuario',
-            'id_documento' => 'required|exists:documentos,id_documento',
-            'nivel_acceso' => 'required|in:lectura,escritura,eliminacion',
-        ]);
-
         $permiso = Permiso::findOrFail($id);
-        $permiso->update($request->all());
 
-        return redirect()->route('permisos.index')->with('success', 'Permiso actualizado correctamente.');
+        // Eliminar TODOS los permisos del mismo usuario y documento
+        Permiso::where('id_usuario', $permiso->id_usuario)
+            ->where('id_documento', $permiso->id_documento)
+            ->delete();
+
+        // Crear los nuevos permisos seleccionados
+        foreach ($request->nivel_acceso as $nivel) {
+            Permiso::create([
+                'id_usuario' => $permiso->id_usuario,
+                'id_documento' => $permiso->id_documento,
+                'nivel_acceso' => $nivel,
+            ]);
+        }
+
+        return redirect()->route('permisos.index')->with('success', 'Permisos actualizados correctamente.');
     }
+
 
     public function destroy($id)
     {
