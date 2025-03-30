@@ -2,9 +2,13 @@
 
 @section('content')
 <div class="container">
-    <h2 class="mb-4">Reportes del Sistema</h2>
+    <div class="row mt-3">
+        <div class="col">
+            <h1 class="mb-4 text-center">Reportes del Sistema</h1>
+        </div>
+    </div>
 
-    <div class="row">
+    <div class="row mt-3 content-center">
         <div class="col-md-6 mb-4">
             <canvas id="graficoEstado"></canvas>
         </div>
@@ -45,7 +49,7 @@
             new Chart(document.getElementById('graficoPermisos'), {
                 type: 'bar',
                 data: {
-                    labels: data.permisosPorUsuario.map(e => e.tipo),
+                    labels: data.permisosPorUsuario.map(e => e.nivel_acceso),
                     datasets: [{
                         label: 'Cantidad',
                         data: data.permisosPorUsuario.map(e => e.total),
