@@ -8,6 +8,7 @@ class Permiso extends Model
 {
     protected $table = 'permisos';
     protected $primaryKey = 'id_permiso';
+    public $timestamps = false;
 
     protected $fillable = [
         'id_documento',
