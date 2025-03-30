@@ -1,14 +1,14 @@
 <?php
+
 namespace App\Repositories\Eloquent;
 
 use App\Models\Permiso;
-use App\Repositories\Interfaces\RepositoryInterface;
 
-class PermisoRepository implements RepositoryInterface
+class PermisoRepository
 {
     public function all()
     {
-        return Permiso::all();
+        return Permiso::with(['usuario', 'documento'])->get();
     }
 
     public function find($id)
