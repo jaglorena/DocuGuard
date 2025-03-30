@@ -1,11 +1,10 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DocumentoController;
-use App\Http\Controllers\GraficoController;
-use App\Http\Controllers\PermisoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PermisoController;
+use App\Http\Controllers\DocumentoController;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -41,6 +40,7 @@ Route::get('/dashboard', function () {
     return view('Usuario.dashboard_usuario');
 })->middleware(['auth'])->name('dashboard');
 
+
 Route::middleware(['auth'])->group(function () {
 
     // Permisos
@@ -49,7 +49,3 @@ Route::middleware(['auth'])->group(function () {
     // Documentos
     Route::resource('documentos', DocumentoController::class);
 });
-
-Route::get('/graficos', [GraficoController::class, 'index'])->name('Graficos.index');
-
-Route::get('/reportes/data', [GraficoController::class, 'data'])->name('reportes.data');
