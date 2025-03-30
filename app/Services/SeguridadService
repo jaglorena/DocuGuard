@@ -1,0 +1,46 @@
+<?php
+namespace App\Services;
+
+use App\Enums\Rol;
+use App\Models\Usuario;
+use App\Repositories\Eloquent\UsuarioRepository;
+use Illuminate\Support\Facades\Hash;
+
+class SeguridadService
+{
+    protected $usuarioRepository;
+
+    public function __construct(UsuarioRepository $repository)
+    {
+        $this->usuarioRepository = $repository;
+    }
+
+    public function encriptar($password): string
+    {
+        return Hash::make($password);
+    }
+
+    public function verificarPassword(string $password, string $hash): bool
+    {
+        return Hash::check($password, $hash);
+    }
+
+    public function obtenerRol(int $idUsuario): string
+    {
+        return $this->usuarioRepository->find($idUsuario)?->rol ?? "";
+    }
+
+    public function crearUsuario(string $nombre, string $apellido, string $correo, string $clave, Rol $rol): Usuario
+    {
+        $data = [
+            'nombre'   => $nombre,
+            'apellido' => $apellido,
+            'correo'   => $correo,
+            'clave'    => $this->encriptar($clave),
+            'rol'      => $rol->value,
+        ];
+
+        return $this->usuarioRepository->create($data);
+    }
+
+}
