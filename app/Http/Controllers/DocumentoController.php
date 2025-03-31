@@ -16,7 +16,6 @@ class DocumentoController extends Controller
     /** @var Usuario $usuario */
     $usuario = Auth::user();
 
-    // Si es administrador, ve todos los documentos
     if (strtolower($usuario->rol) === 'administrador') {
         $documentos = Documento::with('usuario')->get();
     } else {
@@ -50,15 +49,19 @@ class DocumentoController extends Controller
 
         $rutaArchivo = $request->file('archivo')->store('documentos', 'public');
 
+        $ultimaVersion = Documento::where('titulo', $request->titulo)->max('version');
+        $nuevaVersion = $ultimaVersion ? $ultimaVersion + 1 : 1;
+
         $documento = Documento::create([
             'titulo' => $request->titulo,
             'descripcion' => $request->descripcion,
             'ruta_archivo' => $rutaArchivo,
             'fecha_subida' => now(),
-            'version' => $request->version,
+            'version' => $nuevaVersion,
             'estado' => $request->estado,
             'id_usuario_subida' => $usuario->id_usuario
         ]);
+        
 
         foreach ($request->input('permisos', []) as $idUsuario => $niveles) {
             foreach ($niveles as $nivel) {
@@ -81,7 +84,6 @@ class DocumentoController extends Controller
                             ->orderBy('fecha_subida', 'desc')
                             ->get();
 
-        // 👇 Obtener los permisos asignados con info de usuario
         $permisos = $documento->permisos()->with('usuario')->get();
 
         return view('documentos.mostrar', compact('documento', 'versiones', 'permisos'));
@@ -92,7 +94,6 @@ class DocumentoController extends Controller
         $documento = Documento::where('id_documento', $id)->firstOrFail();
         $usuarios = Usuario::where('id_usuario', '!=', Auth::user()->id_usuario)->get();
 
-        // Permisos actuales agrupados por usuario
         $permisosActuales = $documento->permisos->groupBy('id_usuario')->map(function ($grupo) {
             return $grupo->pluck('nivel_acceso')->toArray();
         });
@@ -145,9 +146,18 @@ class DocumentoController extends Controller
         return redirect()->route('documentos.index')->with('success', 'Documento eliminado correctamente.');
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $usuarios = Usuario::where('id_usuario', '!=', Auth::user()->id_usuario)->get();
-        return view('documentos.crear', compact('usuarios'));
+        $titulo = $request->get('titulo');
+
+        $siguienteVersion = null;
+
+        if ($titulo) {
+            $ultimaVersion = Documento::where('titulo', $titulo)->max('version');
+            $siguienteVersion = $ultimaVersion ? $ultimaVersion + 1 : 1;
+        }
+
+        return view('documentos.crear', compact('usuarios', 'titulo', 'siguienteVersion'));
     }
 }
