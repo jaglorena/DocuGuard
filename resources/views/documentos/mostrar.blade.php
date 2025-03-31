@@ -1,4 +1,4 @@
-@extends('Usuario.layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="container py-4">
@@ -6,7 +6,7 @@
         <h2>{{ $documento->titulo }}</h2>
 
         <p><strong>Descripción:</strong> {{ $documento->descripcion }}</p>
-        <p><strong>Estado:</strong> 
+        <p><strong>Estado:</strong>
             <span class="badge bg-{{ $documento->estado === 'publicado' ? 'success' : 'secondary' }}">
                 {{ ucfirst($documento->estado) }}
             </span>

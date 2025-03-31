@@ -1,4 +1,4 @@
-@extends('Usuario.layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="max-w-5xl mx-auto mt-10 bg-white p-6 rounded shadow">
@@ -30,7 +30,7 @@
         {{-- Fila de resumen del usuario --}}
         <tr class="bg-gray-100">
             <td colspan="4" class="p-2 font-bold text-[#155f82]">
-                👤 {{ $usuario->nombre }} {{ $usuario->apellido }} — 
+                👤 {{ $usuario->nombre }} {{ $usuario->apellido }} —
                 <span class="text-sm text-gray-600">Documentos asignados: {{ $documentosAgrupados->count() }}</span>
             </td>
         </tr>
