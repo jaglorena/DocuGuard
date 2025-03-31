@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\UsuarioAdminController;
+use App\Http\Controllers\ReporteController;
 
 
 
@@ -17,28 +18,19 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Rutas protegidas solo para ADMINISTRADORES
 Route::middleware(['auth'])->group(function () {
-    
-
-
-    //Gestion de usuarios 
     Route::resource('usuarios', UsuarioController::class);
     Route::get('/usuarios/{usuario}/cambiar-password', [UsuarioController::class, 'formCambiarPassword'])->name('usuarios.cambiar-password.form');
     Route::put('/usuarios/{usuario}/cambiar-password', [UsuarioController::class, 'cambiarPassword'])->name('usuarios.cambiar-password');
 
-    // Vista de listado de permisos
     Route::get('/permisos', [PermisoController::class, 'index'])->name('permisos.index');
 
-    // Formulario de creación
     Route::get('/permisos/create', [PermisoController::class, 'create'])->name('permisos.create');
     Route::post('/permisos', [PermisoController::class, 'store'])->name('permisos.store');
 
-    // Formulario de edición
     Route::get('/permisos/{id}/edit', [PermisoController::class, 'edit'])->name('permisos.edit');
     Route::put('/permisos/{id}', [PermisoController::class, 'update'])->name('permisos.update');
 
-    // Eliminación
     Route::delete('/permisos/{id}', [PermisoController::class, 'destroy'])->name('permisos.destroy');
 });
 
@@ -62,8 +54,37 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::get('/graficos', [GraficoController::class, 'index'])->name('Graficos.index');
-
 Route::get('/reportes/data', [GraficoController::class, 'data'])->name('reportes.data');
 
+
 Route::put('/documentos/{id}', [DocumentoController::class, 'update'])->name('documentos.update');
+Route::get('/graficos', [DocumentoController::class, 'vistaGraficos'])->name('graficos.index');
+Route::get('/graficos/data', [DocumentoController::class, 'datosGraficos'])->name('reportes.data');
+
+
+Route::middleware(['auth'])->prefix('reportes')->group(function () {
+    Route::get('/', [ReporteController::class, 'index'])->name('reportes.index');
+
+    Route::get('/documentos/csv', [ReporteController::class, 'descargarDocumentosCSV'])->name('reportes.documentos.csv');
+    Route::get('/permisos/csv', [ReporteController::class, 'descargarPermisosCSV'])->name('reportes.permisos.csv');
+    Route::get('/actividad/csv', [ReporteController::class, 'descargarActividadCSV'])->name('reportes.actividad.csv');
+    Route::get('/estado/csv', [ReporteController::class, 'descargarDocumentosEstadoCSV'])->name('reportes.estado.csv');
+});
+Route::get('/reportes/documentos/vista', [ReporteController::class, 'verDocumentosPDF'])->name('reportes.documentos.vista');
+Route::get('/reportes/permisos/vista', [ReporteController::class, 'verPermisosPDF'])->name('reportes.permisos.vista');
+Route::get('/reportes/actividad/vista', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
+Route::get('/reportes/estado/vista', [ReporteController::class, 'verEstadoPDF'])->name('reportes.estado.vista');
+Route::get('/reportes/actividad/vista', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
+Route::get('/reportes/estado/vista', [ReporteController::class, 'verEstadoPDF'])->name('reportes.estado.vista');
+Route::get('/reportes/actividad/vista', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
+Route::prefix('reportes')->middleware(['auth'])->group(function () {
+Route::get('/documentos/vista', [ReporteController::class, 'verDocumentosPDF'])->name('reportes.documentos.vista');
+Route::get('/permisos/vista', [ReporteController::class, 'verPermisosPDF'])->name('reportes.permisos.vista');
+Route::get('/actividad/vista', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
+Route::get('/estado/vista', [ReporteController::class, 'verEstadoPDF'])->name('reportes.estado.vista');});
+
+
+
+
+
 

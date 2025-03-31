@@ -9,6 +9,8 @@
         <a href="{{ route('usuarios.index') }}" class="bg-blue-500 text-white p-4 rounded shadow hover:bg-blue-600 transition">Ver Usuarios</a>
         <a href="{{ route('permisos.index') }}" class="bg-green-500 text-white p-4 rounded shadow hover:bg-green-600 transition">Ver Permisos</a>
         <a href="{{ route('documentos.index') }}" class="bg-purple-500 text-white p-4 rounded hover:bg-purple-600 transition">Gestión de Documentos</a>
+        <a href="{{ route('graficos.index') }}" class="bg-yellow-500 text-white p-4 rounded shadow hover:bg-yellow-600 transition">Ver Gráficos</a>
+        <a href="{{ route('reportes.index') }}" class="bg-pink-500 text-white p-4 rounded shadow hover:bg-pink-600 transition">Reportes</a>
     </div>
 </div>
 @endsection
