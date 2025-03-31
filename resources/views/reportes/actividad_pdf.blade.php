@@ -33,21 +33,24 @@
         <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
     </div>
 
-    <h2>👥 Reporte de Actividad de Documentos</h2>
+    <h2>Reporte de Actividad de Usuarios</h2>
     <table>
         <thead>
             <tr>
+                <th>Usuario</th>
                 <th>Documento</th>
-                <th>Fecha de Subida</th>
-                <th>Última Modificación</th>
+                <th>Acción</th>
+                <th>Fecha de la Acción</th>
             </tr>
         </thead>
         <tbody>
             @foreach($actividad as $a)
-                <td>{{ $a->documento }}</td>
-                <td>{{ $a->usuario }}</td>
-                <td>{{ \Carbon\Carbon::parse($a->fecha_subida)->format('d/m/Y') }}</td>
-                <td>{{ \Carbon\Carbon::parse($a->ultima_modificacion)->format('d/m/Y H:i') }}</td>
+                <tr>
+                    <td>{{ $a->usuario }}</td>
+                    <td>{{ $a->documento }}</td>
+                    <td>{{ ucfirst($a->accion) }}</td>
+                    <td>{{ \Carbon\Carbon::parse($a->fecha_accion)->format('d/m/Y H:i') }}</td>
+                </tr>
             @endforeach
         </tbody>
     </table>

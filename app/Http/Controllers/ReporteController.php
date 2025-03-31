@@ -24,11 +24,15 @@ class ReporteController extends Controller
 
         return view('reportes.index');
     }
+
     public function descargarDocumentosCSV()
     {
         $documentos = DB::table('documentos')->select('titulo', 'fecha_subida', 'version', 'estado')->get();
 
         $csv = fopen('php://temp', 'r+');
+
+        fprintf($csv, chr(0xEF).chr(0xBB).chr(0xBF));
+
         fputcsv($csv, ['Título', 'Fecha de Subida', 'Versión', 'Estado']);
 
         foreach ($documentos as $doc) {
@@ -41,13 +45,12 @@ class ReporteController extends Controller
         }
 
         rewind($csv);
-        $contenido = stream_get_contents($csv);
-        fclose($csv);
 
-        return response($contenido)
-            ->header('Content-Type', 'text/csv')
+        return response(stream_get_contents($csv))
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
             ->header('Content-Disposition', 'attachment; filename="reporte_documentos.csv"');
     }
+
 
     public function descargarPermisosCSV()
     {
@@ -62,51 +65,69 @@ class ReporteController extends Controller
             ->orderBy('usuarios.nombre')
             ->get();
 
-            $csv = fopen('php://temp', 'r+');
-            fputcsv($csv, ['Usuario', 'Documento', 'Permiso']);
-            
-            foreach ($permisos as $p) {
-                fputcsv($csv, [
-                    $p->usuario,
-                    $p->documento,
-                    $p->permiso
-                ]);
-            }
-            rewind($csv);
-            return response(stream_get_contents($csv))
-                ->header('Content-Type', 'text/csv')
-                ->header('Content-Disposition', 'attachment; filename="reporte_permisos.csv"');
-            
+        $csv = fopen('php://temp', 'r+');
+
+        fprintf($csv, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        fputcsv($csv, ['Usuario', 'Documento', 'Permiso']);
+
+        foreach ($permisos as $p) {
+            fputcsv($csv, [
+                $p->usuario,
+                $p->documento,
+                ucfirst($p->permiso)
+            ]);
+        }
+
+        rewind($csv);
+
+        return response(stream_get_contents($csv))
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="reporte_permisos.csv"');
     }
+
 
     public function descargarActividadCSV()
     {
         $actividad = DB::table('documentos')
             ->join('usuarios', 'documentos.id_usuario_subida', '=', 'usuarios.id_usuario')
             ->select(
-                DB::raw("regexp_replace(documentos.titulo, '\\[grupo=.*?\\]', '', 'g') as documento"),
                 'usuarios.nombre as usuario',
+                DB::raw("regexp_replace(documentos.titulo, '\\[grupo=.*?\\]', '', 'g') as documento"),
                 'documentos.fecha_subida',
-                'documentos.updated_at as ultima_modificacion'
+                'documentos.updated_at'
             )
             ->orderByDesc('documentos.updated_at')
             ->get();
 
         $csv = fopen('php://temp', 'r+');
-        fputcsv($csv, ['Usuario', 'Documento', 'Fecha de Subida', 'Última Modificación']);
+
+        fprintf($csv, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        fputcsv($csv, ['Usuario', 'Documento', 'Acción', 'Fecha de la Acción']);
 
         foreach ($actividad as $registro) {
             fputcsv($csv, [
                 $registro->usuario,
                 $registro->documento,
-                \Carbon\Carbon::parse($registro->fecha_subida)->format('d/m/Y'),
-                \Carbon\Carbon::parse($registro->ultima_modificacion)->format('d/m/Y H:i')
+                'Subido',
+                \Carbon\Carbon::parse($registro->fecha_subida)->format('d/m/Y H:i')
             ]);
+
+            if($registro->updated_at != $registro->fecha_subida){
+                fputcsv($csv, [
+                    $registro->usuario,
+                    $registro->documento,
+                    'Modificado',
+                    \Carbon\Carbon::parse($registro->updated_at)->format('d/m/Y H:i')
+                ]);
+            }
         }
 
         rewind($csv);
+
         return response(stream_get_contents($csv))
-            ->header('Content-Type', 'text/csv')
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
             ->header('Content-Disposition', 'attachment; filename="reporte_actividad.csv"');
     }
 
@@ -174,15 +195,35 @@ class ReporteController extends Controller
         $actividad = DB::table('documentos')
             ->join('usuarios', 'documentos.id_usuario_subida', '=', 'usuarios.id_usuario')
             ->select(
-                DB::raw("regexp_replace(documentos.titulo, '\\[grupo=.*?\\]', '', 'g') as documento"),
                 'usuarios.nombre as usuario',
+                DB::raw("regexp_replace(documentos.titulo, '\\[grupo=.*?\\]', '', 'g') as documento"),
                 'documentos.fecha_subida',
-                'documentos.updated_at as ultima_modificacion'
+                'documentos.updated_at'
             )
             ->orderByDesc('documentos.updated_at')
             ->get();
 
-        return view('reportes.actividad_pdf', compact('actividad'));
+        $registros = [];
+
+        foreach ($actividad as $registro) {
+            $registros[] = (object)[
+                'usuario' => $registro->usuario,
+                'documento' => $registro->documento,
+                'accion' => 'Subido',
+                'fecha_accion' => $registro->fecha_subida,
+            ];
+
+            if($registro->updated_at != $registro->fecha_subida){
+                $registros[] = (object)[
+                    'usuario' => $registro->usuario,
+                    'documento' => $registro->documento,
+                    'accion' => 'Modificado',
+                    'fecha_accion' => $registro->updated_at,
+                ];
+            }
+        }
+
+        return view('reportes.actividad_pdf', ['actividad' => $registros]);
     }
 
     public function verEstadoPDF()

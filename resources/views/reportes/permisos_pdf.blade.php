@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Reporte de Documentos</title>
+    <title>Reporte de Permisos por Usuario</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; font-size: 14px; }
         h2 { text-align: center; color: #155f82; }
@@ -20,7 +20,6 @@
         .no-print {
             text-align: right;
         }
-
         @media print {
             .no-print {
                 display: none;
@@ -33,21 +32,22 @@
         <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
     </div>
 
-    <h2>Reporte de Documentos Subidos</h2>
+    <h2>Reporte de Permisos por Usuario</h2>
     <table>
         <thead>
             <tr>
-                <th>Título</th>
-                <th>Fecha de Subida</th>
-                <th>Versión</th>
-                <th>Estado</th>
+                <th>Usuario</th>
+                <th>Documento</th>
+                <th>Permiso</th>
             </tr>
         </thead>
         <tbody>
             @foreach($permisos as $p)
-                {{ $p->usuario }}
-                {{ $p->documento }}
-                {{ ucfirst($p->permiso) }}
+                <tr>
+                    <td>{{ $p->usuario }}</td>
+                    <td>{{ $p->documento }}</td>
+                    <td>{{ ucfirst($p->permiso) }}</td>
+                </tr>
             @endforeach
         </tbody>
     </table>

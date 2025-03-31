@@ -43,8 +43,10 @@
         </thead>
         <tbody>
             @foreach($estados as $e)
-                <td>{{ ucfirst($e->estado) }}</td>
-                <td>{{ $e->total }}</td>
+                <tr>
+                    <td>{{ ucfirst($e->estado) }}</td>
+                    <td>{{ $e->total }}</td>
+                </tr>
             @endforeach
         </tbody>
     </table>

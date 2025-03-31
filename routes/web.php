@@ -62,26 +62,19 @@ Route::get('/graficos', [DocumentoController::class, 'vistaGraficos'])->name('gr
 Route::get('/graficos/data', [DocumentoController::class, 'datosGraficos'])->name('reportes.data');
 
 
-Route::middleware(['auth'])->prefix('reportes')->group(function () {
-    Route::get('/', [ReporteController::class, 'index'])->name('reportes.index');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
 
-    Route::get('/documentos/csv', [ReporteController::class, 'descargarDocumentosCSV'])->name('reportes.documentos.csv');
-    Route::get('/permisos/csv', [ReporteController::class, 'descargarPermisosCSV'])->name('reportes.permisos.csv');
-    Route::get('/actividad/csv', [ReporteController::class, 'descargarActividadCSV'])->name('reportes.actividad.csv');
-    Route::get('/estado/csv', [ReporteController::class, 'descargarDocumentosEstadoCSV'])->name('reportes.estado.csv');
+    Route::get('/reportes/documentos-csv', [ReporteController::class, 'descargarDocumentosCSV'])->name('reportes.documentos.csv');
+    Route::get('/reportes/permisos-csv', [ReporteController::class, 'descargarPermisosCSV'])->name('reportes.permisos.csv');
+    Route::get('/reportes/actividad-csv', [ReporteController::class, 'descargarActividadCSV'])->name('reportes.actividad.csv');
+    Route::get('/reportes/estado-csv', [ReporteController::class, 'descargarDocumentosEstadoCSV'])->name('reportes.estado.csv');
+
+    Route::get('/reportes/documentos', [ReporteController::class, 'verDocumentosPDF'])->name('reportes.documentos.vista');
+    Route::get('/reportes/permisos', [ReporteController::class, 'verPermisosPDF'])->name('reportes.permisos.vista');
+    Route::get('/reportes/actividad', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
+    Route::get('/reportes/estado', [ReporteController::class, 'verEstadoPDF'])->name('reportes.estado.vista');
 });
-Route::get('/reportes/documentos/vista', [ReporteController::class, 'verDocumentosPDF'])->name('reportes.documentos.vista');
-Route::get('/reportes/permisos/vista', [ReporteController::class, 'verPermisosPDF'])->name('reportes.permisos.vista');
-Route::get('/reportes/actividad/vista', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
-Route::get('/reportes/estado/vista', [ReporteController::class, 'verEstadoPDF'])->name('reportes.estado.vista');
-Route::get('/reportes/actividad/vista', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
-Route::get('/reportes/estado/vista', [ReporteController::class, 'verEstadoPDF'])->name('reportes.estado.vista');
-Route::get('/reportes/actividad/vista', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
-Route::prefix('reportes')->middleware(['auth'])->group(function () {
-Route::get('/documentos/vista', [ReporteController::class, 'verDocumentosPDF'])->name('reportes.documentos.vista');
-Route::get('/permisos/vista', [ReporteController::class, 'verPermisosPDF'])->name('reportes.permisos.vista');
-Route::get('/actividad/vista', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
-Route::get('/estado/vista', [ReporteController::class, 'verEstadoPDF'])->name('reportes.estado.vista');});
 
 
 

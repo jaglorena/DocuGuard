@@ -45,11 +45,12 @@
         </thead>
         <tbody>
             @foreach($documentos as $doc)
-                <td>{{ $doc->documento }}</td>
-                <td>{{ \Carbon\Carbon::parse($doc->fecha_subida)->format('d/m/Y') }}</td>
-                <td>{{ $doc->version }}</td>
-                <td>{{ ucfirst($doc->estado) }}</td>
-                <td>{{ $doc->subido_por }}</td>
+                <tr>
+                    <td>{{ $doc->documento }}</td>
+                    <td>{{ \Carbon\Carbon::parse($doc->fecha_subida)->format('d/m/Y') }}</td>
+                    <td>{{ str_pad($doc->version, 3, '0', STR_PAD_LEFT) }}</td>
+                    <td>{{ ucfirst($doc->estado) }}</td>
+                </tr>
             @endforeach
         </tbody>
     </table>
