@@ -4,12 +4,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\GraficoController;
 use App\Http\Controllers\PermisoController;
+use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\UsuarioAdminController;
-
-
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -19,10 +16,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Rutas protegidas solo para ADMINISTRADORES
 Route::middleware(['auth'])->group(function () {
-    
 
-
-    //Gestion de usuarios 
+    //Gestion de usuarios
     Route::resource('usuarios', UsuarioController::class);
     Route::get('/usuarios/{usuario}/cambiar-password', [UsuarioController::class, 'formCambiarPassword'])->name('usuarios.cambiar-password.form');
     Route::put('/usuarios/{usuario}/cambiar-password', [UsuarioController::class, 'cambiarPassword'])->name('usuarios.cambiar-password');
@@ -64,3 +59,5 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/graficos', [GraficoController::class, 'index'])->name('Graficos.index');
 
 Route::get('/reportes/data', [GraficoController::class, 'data'])->name('reportes.data');
+
+Route::get("/", [AuthController::class, 'showLogin'])->name('login');
