@@ -64,3 +64,6 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/graficos', [GraficoController::class, 'index'])->name('Graficos.index');
 
 Route::get('/reportes/data', [GraficoController::class, 'data'])->name('reportes.data');
+
+Route::put('/documentos/{id}', [DocumentoController::class, 'update'])->name('documentos.update');
+
