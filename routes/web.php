@@ -61,3 +61,9 @@ Route::get('/graficos', [GraficoController::class, 'index'])->name('Graficos.ind
 Route::get('/reportes/data', [GraficoController::class, 'data'])->name('reportes.data');
 
 Route::get("/", [AuthController::class, 'showLogin'])->name('login');
+
+Route::middleware('accesos')->group(function () {
+    Route::resource('/usuarios', UsuarioController::class);
+    Route::resource('/documentos', DocumentoController::class)->except(['show']);
+    Route::resource('/permisos', PermisoController::class);
+});
