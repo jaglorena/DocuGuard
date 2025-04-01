@@ -46,10 +46,13 @@
                 ->pluck('nivel_acceso')
                 ->toArray();
         @endphp
+        @php
+            $tituloBase = trim(preg_replace('/\[grupo=.*?\]/', '', $documento->titulo));
+        @endphp
 
         <div class="border-l-4 p-4 rounded mb-4 shadow {{ auth()->user()->colorPermiso($documento->id_documento) }}">
-            <h3 class="text-xl font-semibold text-gray-800">{{ preg_replace('/\[grupo=.*?\]/', '', $documento->titulo) }}</h3>
-            <p class="text-gray-600">{{ $documento->descripcion }}</p>
+            <h3 class="text-xl font-semibold text-gray-800">{{ $tituloBase }}</h3>
+            <p class="text-sm text-gray-500">Grupo: {{ $documento->titulo_original ?? 'Sin nombre'}}</p>
             <p class="text-sm text-gray-500">
                 📌 Versión: {{ str_pad($documento->version, 3, '0', STR_PAD_LEFT) }} |
                 Estado: {{ ucfirst($documento->estado) }} |

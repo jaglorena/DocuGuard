@@ -37,11 +37,14 @@ class DocumentoController extends Controller
             preg_match('/\[grupo=(.*?)\]/', $doc->titulo, $match);
             return $match[1] ?? $doc->titulo;
         });
-
+        
         $documentos = $agrupados->map(function ($grupo) {
-            return $grupo->sortByDesc('version')->first();
+            $documentoMasReciente = $grupo->sortByDesc('version')->first();
+            $documentoOriginal = $grupo->sortBy('version')->first();
+            $documentoMasReciente->titulo_original = trim(preg_replace('/\[grupo=.*?\]/', '', $documentoOriginal->titulo));
+            return $documentoMasReciente;
         });
-
+        
         return view('documentos.index', [
             'documentos' => $documentos,
         ]);
@@ -114,7 +117,18 @@ class DocumentoController extends Controller
     public function edit($id)
     {
         $documento = Documento::findOrFail($id);
-        $usuarios  = Usuario::where('id_usuario', '!=', Auth::user()->id_usuario)->get();
+        $usuarios = Usuario::where('id_usuario', '!=', Auth::user()->id_usuario)->get();
+
+        // Verificamos si es la versión 1 de su grupo
+        $grupo = $this->obtenerGrupoDesdeTitulo($documento->titulo);
+        $primeraVersion = Documento::where('titulo', 'like', "%[grupo={$grupo}]%")
+                            ->orderBy('version')
+                            ->first();
+
+        if ($documento->id_documento === $primeraVersion->id_documento) {
+            return redirect()->route('documentos.index')
+                ->with('error', 'La versión original del documento no puede ser editada.');
+        }
 
         $permisosActuales = $documento->permisos->groupBy('id_usuario')->map(function ($grupo) {
             return $grupo->pluck('nivel_acceso')->toArray();
@@ -142,15 +156,16 @@ class DocumentoController extends Controller
         $documento->estado      = $request->estado;
         $documento->save();
 
-        // Actualizar permisos
-        Permiso::where('id_documento', $documento->id_documento)->delete();
-
         if ($request->has('permisos')) {
+            // Eliminar permisos existentes para este documento
+            Permiso::where('id_documento', $documento->id_documento)->delete();
+    
+            // Crear los nuevos permisos enviados desde el formulario
             foreach ($request->input('permisos', []) as $idUsuario => $niveles) {
                 foreach ($niveles as $nivel) {
                     Permiso::create([
                         'id_documento' => $documento->id_documento,
-                        'id_usuario'   => $idUsuario,
+                        'id_usuario' => $idUsuario,
                         'nivel_acceso' => $nivel,
                     ]);
                 }

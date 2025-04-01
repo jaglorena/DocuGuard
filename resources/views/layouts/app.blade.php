@@ -18,6 +18,9 @@
             @auth
                 <div class="flex gap-4 items-center">
 
+                    <!-- Enlace al Dashboard -->
+                     <a href="{{ route('dashboard') }}" class="hover:underline text-sm">Dashboard</a>
+
                     <!-- Enlace visible para todos los usuarios -->
                     <a href="{{ route('documentos.index') }}" class="hover:underline text-sm">
                         Documentos

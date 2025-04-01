@@ -10,16 +10,30 @@
 
     <div class="row mt-3 content-center">
         <div class="col-md-6 mb-4">
-            <canvas id="graficoEstado"></canvas>
+            <div style="height: 250px;">
+                <canvas id="graficoEstado" style="max-height: 100%;"></canvas>
+            </div>
         </div>
         <div class="col-md-6 mb-4">
-            <canvas id="graficoPermisos"></canvas>
+            <div style="height: 250px;">
+                <canvas id="graficoPermisos" style="max-height: 100%;"></canvas>
+            </div>
         </div>
         <div class="col-md-6 mb-4">
-            <canvas id="graficoFechas"></canvas>
+            <label for="tipoFecha" class="form-label">Mostrar documentos por:</label>
+            <select id="tipoFecha" class="form-select mb-2">
+                <option value="mensual" selected>Mes</option>
+                <option value="trimestral">Trimestre</option>
+            </select>
+
+            <div style="height: 250px;">
+                <canvas id="graficoFechas" style="max-height: 100%;"></canvas>
+            </div>
         </div>
         <div class="col-md-6 mb-4">
-            <canvas id="graficoActividad"></canvas>
+            <div style="height: 300px;">
+                <canvas id="graficoActividad" style="max-height: 100%;"></canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -58,17 +72,33 @@
                 }
             });
 
-            // 3. Documentos por Fecha (Line)
-            new Chart(document.getElementById('graficoFechas'), {
-                type: 'line',
-                data: {
-                    labels: data.documentosPorFecha.map(e => e.mes),
-                    datasets: [{
-                        label: 'Documentos subidos',
-                        data: data.documentosPorFecha.map(e => e.total),
-                        borderColor: '#36A2EB',
-                        tension: 0.3
-                    }]
+            // 3. Documentos por Fecha (mensual/trimestral)
+            let chartFechas = null;
+            const ctxFechas = document.getElementById('graficoFechas').getContext('2d');
+
+            function renderGraficoFechas(dataSet, label) {
+                if (chartFechas) chartFechas.destroy();
+                chartFechas = new Chart(ctxFechas, {
+                    type: 'line',
+                    data: {
+                        labels: dataSet.map(e => e.periodo),
+                        datasets: [{
+                            label: label,
+                            data: dataSet.map(e => e.total),
+                            borderColor: '#36A2EB',
+                            tension: 0.3
+                        }]
+                    }
+                });
+            }
+
+            renderGraficoFechas(data.documentosPorFecha, 'Documentos subidos (Mes)');
+
+            document.getElementById('tipoFecha').addEventListener('change', function () {
+                if (this.value === 'mensual') {
+                    renderGraficoFechas(data.documentosPorFecha, 'Documentos subidos (Mes)');
+                } else {
+                    renderGraficoFechas(data.documentosPorTrimestre, 'Documentos subidos (Trimestre)');
                 }
             });
 

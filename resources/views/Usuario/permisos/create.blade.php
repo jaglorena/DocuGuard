@@ -23,7 +23,7 @@
                 <option value="">Seleccione un documento</option>
                 @foreach ($documentos as $documento)
                     <option value="{{ $documento->id_documento }}">
-                        {{ preg_replace('/\[grupo=.*?\]/', '', $documento->titulo) }}
+                        {{ preg_replace('/\[grupo=.*?\]/', '', $documento->titulo) }} - v{{ $documento->version }}
                     </option>
                 @endforeach
             </select>

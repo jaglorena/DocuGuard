@@ -33,7 +33,7 @@
         <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
     </div>
 
-    <h2>Reporte de Actividad de Usuarios</h2>
+    <h2>Reporte de Actividad de Usuarios Admin</h2>
     <table>
         <thead>
             <tr>
