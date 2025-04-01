@@ -1,4 +1,4 @@
-@extends('Usuario.layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="max-w-4xl mx-auto mt-8 bg-white p-6 rounded shadow">
@@ -45,7 +45,7 @@
                 @foreach($versionesConPermiso as $ver)
                     <div class="mb-8 border border-gray-200 p-4 rounded shadow">
                         <p class="font-semibold text-gray-700 mb-2">
-                            Versión {{ str_pad($ver->version, 3, '0', STR_PAD_LEFT) }} — Estado: 
+                            Versión {{ str_pad($ver->version, 3, '0', STR_PAD_LEFT) }} — Estado:
                             <span class="font-medium">{{ ucfirst($ver->estado) }}</span>
                         </p>
 
@@ -110,8 +110,8 @@
                         <p><strong>📝 Descripción:</strong> {{ $ver->descripcion }}</p>
                         <p>
                             <strong>📌 Estado:</strong>
-                            <span class="inline-block px-2 py-1 rounded text-xs font-semibold 
-                                {{ $ver->estado === 'activo' ? 'bg-green-100 text-green-700' : 
+                            <span class="inline-block px-2 py-1 rounded text-xs font-semibold
+                                {{ $ver->estado === 'activo' ? 'bg-green-100 text-green-700' :
                                 ($ver->estado === 'borrador' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-700') }}">
                                 {{ ucfirst($ver->estado) }}
                             </span>
