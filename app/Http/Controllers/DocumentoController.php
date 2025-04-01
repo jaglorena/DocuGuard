@@ -8,32 +8,43 @@ use App\Models\Permiso;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Enums\EstadoDocumento;
+use Illuminate\Validation\Rule;
 
 class DocumentoController extends Controller
 {
-    public function index()
-{
-    /** @var Usuario $usuario */
-    $usuario = Auth::user();
-
-    // Si es administrador, ve todos los documentos
-    if (strtolower($usuario->rol) === 'administrador') {
-        $documentos = Documento::with('usuario')->get();
-    } else {
-        $documentos = Documento::whereHas('permisos', function ($query) use ($usuario) {
-            $query->where('id_usuario', $usuario->id_usuario);
-        })->with('usuario')->get();
+    private function obtenerGrupoDesdeTitulo($titulo)
+    {
+        preg_match('/\[grupo=(.*?)\]/', $titulo, $matches);
+        return $matches[1] ?? trim($titulo);
     }
-
-    return view('documentos.index', compact('documentos'));
     
-    $usuarioId = $usuario->id_usuario;
+    public function index()
+    {
+        $usuario = Auth::user();
 
-    $documentos = Documento::whereHas('permisos', function ($query) use ($usuarioId) {
-            $query->where('id_usuario', $usuarioId);
-        })->get();
+        $query = Documento::query();
 
-        return view('documentos.index', compact('documentos'));
+        if (strtolower($usuario->rol) !== 'administrador') {
+            $query->whereHas('permisos', function ($q) use ($usuario) {
+                $q->where('id_usuario', $usuario->id_usuario);
+            });
+        }
+
+        $documentosAccesibles = $query->get();
+
+        $agrupados = $documentosAccesibles->groupBy(function ($doc) {
+            preg_match('/\[grupo=(.*?)\]/', $doc->titulo, $match);
+            return $match[1] ?? $doc->titulo;
+        });
+
+        $documentos = $agrupados->map(function ($grupo) {
+            return $grupo->sortByDesc('version')->first();
+        });
+
+        return view('documentos.index', [
+            'documentos' => $documentos
+        ]);
     }
 
     public function store(Request $request)
@@ -44,18 +55,31 @@ class DocumentoController extends Controller
             'titulo' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'archivo' => 'required|file|mimes:pdf,doc,docx,txt',
-            'estado' => 'required|in:borrador,activo,archivado',
-            'version' => 'required|string'
+            'estado' => ['required', Rule::in(array_column(EstadoDocumento::cases(), 'value'))],
         ]);
+
+        if ($request->filled('grupo_existente')) {
+            $grupo = $request->grupo_existente;
+            $tituloEditable = $request->titulo;
+        } else {
+            $grupo = uniqid();
+            $tituloEditable = $request->titulo;
+        }
+        
+
+        $tituloFinal = "{$tituloEditable} [grupo={$grupo}]";
+
+        $ultimaVersion = Documento::where('titulo', 'like', "%[grupo={$grupo}]%")->max('version');
+        $nuevaVersion = $ultimaVersion ? $ultimaVersion + 1 : 1;
 
         $rutaArchivo = $request->file('archivo')->store('documentos', 'public');
 
         $documento = Documento::create([
-            'titulo' => $request->titulo,
+            'titulo' => $tituloFinal,
             'descripcion' => $request->descripcion,
             'ruta_archivo' => $rutaArchivo,
             'fecha_subida' => now(),
-            'version' => $request->version,
+            'version' => $nuevaVersion,
             'estado' => $request->estado,
             'id_usuario_subida' => $usuario->id_usuario
         ]);
@@ -69,30 +93,31 @@ class DocumentoController extends Controller
                 ]);
             }
         }
-
-        return redirect()->route('documentos.index')->with('success', 'Documento subido correctamente.');
+        return redirect()->route('documentos.show', $documento->id_documento)
+                 ->with('success', 'Documento subido correctamente.');
     }
+
 
     public function show($id)
     {
-        $documento = Documento::where('id_documento', $id)->firstOrFail();
+        $documento = Documento::with('usuario')->findOrFail($id);
 
-        $versiones = Documento::where('titulo', $documento->titulo)
-                            ->orderBy('fecha_subida', 'desc')
-                            ->get();
+        $grupo = $this->obtenerGrupoDesdeTitulo($documento->titulo);
+        $versiones = Documento::where('titulo', 'like', "%[grupo={$grupo}]%")
+            ->orderByDesc('version')
+            ->get();
 
-        // 👇 Obtener los permisos asignados con info de usuario
         $permisos = $documento->permisos()->with('usuario')->get();
 
         return view('documentos.mostrar', compact('documento', 'versiones', 'permisos'));
     }
-    
+
+
     public function edit($id)
     {
-        $documento = Documento::where('id_documento', $id)->firstOrFail();
+        $documento = Documento::findOrFail($id);
         $usuarios = Usuario::where('id_usuario', '!=', Auth::user()->id_usuario)->get();
 
-        // Permisos actuales agrupados por usuario
         $permisosActuales = $documento->permisos->groupBy('id_usuario')->map(function ($grupo) {
             return $grupo->pluck('nivel_acceso')->toArray();
         });
@@ -103,34 +128,43 @@ class DocumentoController extends Controller
 
     public function update(Request $request, $id)
     {
-        $documento = Documento::where('id_documento', $id)->firstOrFail();
+        $documento = Documento::findOrFail($id);
 
         $request->validate([
             'titulo' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'estado' => 'required|in:borrador,publicado'
+            'estado' => 'required|string',
         ]);
 
-        $documento->update([
-            'titulo' => $request->titulo,
-            'descripcion' => $request->descripcion,
-            'estado' => $request->estado
-        ]);
+        // Extraer el grupo actual
+        $grupo = $this->obtenerGrupoDesdeTitulo($documento->titulo);
+        $tituloEditable = $request->titulo;
 
+        $documento->titulo = "{$tituloEditable} [grupo={$grupo}]";
+        $documento->descripcion = $request->descripcion;
+        $documento->estado = $request->estado;
+        $documento->save();
+
+        // Actualizar permisos
         Permiso::where('id_documento', $documento->id_documento)->delete();
 
-        foreach ($request->input('permisos', []) as $idUsuario => $niveles) {
-            foreach ($niveles as $nivel) {
-                Permiso::create([
-                    'id_documento' => $documento->id_documento,
-                    'id_usuario' => $idUsuario,
-                    'nivel_acceso' => $nivel,
-                ]);
+        if ($request->has('permisos')) {
+            foreach ($request->input('permisos', []) as $idUsuario => $niveles) {
+                foreach ($niveles as $nivel) {
+                    Permiso::create([
+                        'id_documento' => $documento->id_documento,
+                        'id_usuario' => $idUsuario,
+                        'nivel_acceso' => $nivel,
+                    ]);
+                }
             }
-        }        
+        }
 
-        return redirect()->route('documentos.index')->with('success', 'Documento y permisos actualizados correctamente.');
+        return redirect()->route('documentos.show', $documento->id_documento)
+                        ->with('success', 'Documento actualizado correctamente.');
     }
+
+
 
     public function destroy($id)
     {
@@ -145,9 +179,25 @@ class DocumentoController extends Controller
         return redirect()->route('documentos.index')->with('success', 'Documento eliminado correctamente.');
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $usuarios = Usuario::where('id_usuario', '!=', Auth::user()->id_usuario)->get();
-        return view('documentos.crear', compact('usuarios'));
+        
+        $titulo = $request->input('titulo');
+        $nuevaVersion = '0001';
+
+        if ($titulo) {
+            $ultimaVersion = Documento::where('titulo', $titulo)->max('version');
+            $siguiente = (int)$ultimaVersion + 1;
+            $nuevaVersion = str_pad($siguiente, 4, '0', STR_PAD_LEFT);
+        }
+
+        $documentosExistentes = Documento::all()->groupBy(function ($doc) {
+            preg_match('/\[grupo=(.*?)\]/', $doc->titulo, $match);
+            return $match[1] ?? $doc->titulo;
+        })->map->first();
+        
+        return view('documentos.crear', compact('usuarios', 'titulo', 'nuevaVersion', 'documentosExistentes'));
+        
     }
 }
