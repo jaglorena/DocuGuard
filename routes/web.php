@@ -4,14 +4,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\GraficoController;
 use App\Http\Controllers\PermisoController;
+use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\UsuarioAdminController;
-use App\Http\Controllers\ReporteController;
-
-
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -57,11 +53,9 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/graficos', [GraficoController::class, 'index'])->name('Graficos.index');
 Route::get('/reportes/data', [GraficoController::class, 'data'])->name('reportes.data');
 
-
 Route::put('/documentos/{id}', [DocumentoController::class, 'update'])->name('documentos.update');
 Route::get('/graficos', [DocumentoController::class, 'vistaGraficos'])->name('graficos.index');
 Route::get('/graficos/data', [DocumentoController::class, 'datosGraficos'])->name('reportes.data');
-
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
@@ -76,12 +70,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reportes/actividad', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
     Route::get('/reportes/estado', [ReporteController::class, 'verEstadoPDF'])->name('reportes.estado.vista');
 });
-
-
-
-
-
-
 
 Route::get("/", [AuthController::class, 'showLogin'])->name('login');
 
