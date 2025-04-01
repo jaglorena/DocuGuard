@@ -19,10 +19,12 @@
 
         <div class="mb-4">
             <label class="block font-semibold mb-1">Documento</label>
-            <select name="id_documento[]" multiple required class="w-full border px-3 py-2 rounded" required>
+            <select name="id_documento[]" multiple required class="w-full border px-3 py-2 rounded">
                 <option value="">Seleccione un documento</option>
                 @foreach ($documentos as $documento)
-                    <option value="{{ $documento->id_documento }}">{{ $documento->titulo }}</option>
+                    <option value="{{ $documento->id_documento }}">
+                        {{ preg_replace('/\[grupo=.*?\]/', '', $documento->titulo) }}
+                    </option>
                 @endforeach
             </select>
         </div>

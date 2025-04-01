@@ -18,10 +18,33 @@
     <form action="{{ route('documentos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
         @csrf
 
+        {{-- Título --}}
         <div>
             <label for="titulo" class="block font-medium text-gray-700">Título</label>
-            <input type="text" name="titulo" id="titulo" class="mt-1 w-full border border-gray-300 rounded px-3 py-2 shadow-sm focus:ring-[#155f82] focus:border-[#155f82]" required>
+            <input type="text" name="titulo" id="titulo"
+                value="{{ old('titulo', $titulo ?? '') }}"
+                class="mt-1 w-full border border-gray-300 rounded px-3 py-2 shadow-sm focus:ring-[#155f82] focus:border-[#155f82]" required>
         </div>
+
+        {{-- Grupo existente (selección) --}}
+        @if(!empty($documentosExistentes) && count($documentosExistentes))
+        <div>
+                <label for="grupo_existente" class="block font-medium text-gray-700">Agregar como versión de documento existente</label>
+                <select name="grupo_existente" id="grupo_existente" class="mt-1 w-full border border-gray-300 rounded px-3 py-2 shadow-sm">
+                    <option value="">- Elegir grupo de Documentos -</option>
+                    @foreach($documentosExistentes as $grupo => $doc)
+                        @php
+                            $grupoId = $grupo;
+                            $tituloEditable = trim(preg_replace('/\[grupo=.*?\]/', '', $doc->titulo));
+                        @endphp
+                        <option value="{{ $grupoId }}">
+                            {{ $tituloEditable }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-gray-500 mt-1">Seleccioná un documento existente si querés agregar una nueva versión.</p>
+            </div>
+        @endif
 
         <div>
             <label for="descripcion" class="block font-medium text-gray-700">Descripción</label>
@@ -37,15 +60,24 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label for="version" class="block font-medium text-gray-700">Versión</label>
-                <input type="text" name="version" id="version" class="mt-1 w-full border border-gray-300 rounded px-3 py-2 shadow-sm focus:ring-[#155f82] focus:border-[#155f82]" required>
+                <input type="text" name="version" id="version" 
+                    value="{{ old('version', $nuevaVersion ?? '') }}" 
+                    class="mt-1 w-full border border-gray-300 rounded px-3 py-2 shadow-sm"
+                    readonly required>
             </div>
+
+            @php
+                use App\Enums\EstadoDocumento;
+            @endphp
 
             <div>
                 <label for="estado" class="block font-medium text-gray-700">Estado</label>
-                <select name="estado" id="estado" class="mt-1 block w-full border-gray-300 rounded shadow-sm" required>
-                    <option value="borrador">Borrador</option>
-                    <option value="activo">Publicado</option>
-                    <option value="archivado">Archivado</option>
+                <select name="estado" id="estado" class="...">
+                    @foreach(\App\Enums\EstadoDocumento::cases() as $estado)
+                        <option value="{{ $estado->value }}" {{ old('estado', $documento->estado ?? '') === $estado->value ? 'selected' : '' }}>
+                            {{ ucfirst($estado->value) }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
         </div>

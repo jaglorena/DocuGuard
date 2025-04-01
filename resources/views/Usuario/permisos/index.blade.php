@@ -16,58 +16,62 @@
             </tr>
         </thead>
         <tbody>
-    @php
-        // Agrupamos primero por usuario
-        $usuariosAgrupados = $permisos->groupBy('id_usuario');
-    @endphp
-
-    @foreach ($usuariosAgrupados as $usuarioId => $permisosPorUsuario)
-        @php
-            $usuario = $permisosPorUsuario->first()->usuario;
-            $documentosAgrupados = $permisosPorUsuario->groupBy('id_documento');
-        @endphp
-
-        {{-- Fila de resumen del usuario --}}
-        <tr class="bg-gray-100">
-            <td colspan="4" class="p-2 font-bold text-[#155f82]">
-                👤 {{ $usuario->nombre }} {{ $usuario->apellido }} —
-                <span class="text-sm text-gray-600">Documentos asignados: {{ $documentosAgrupados->count() }}</span>
-            </td>
-        </tr>
-
-        {{-- Fila por cada documento asignado --}}
-        @foreach ($documentosAgrupados as $documentoId => $permisosGrupo)
             @php
-                $documento = $permisosGrupo->first()->documento;
-                $niveles = $permisosGrupo->pluck('nivel_acceso')->toArray();
+                // Agrupamos primero por usuario
+                $usuariosAgrupados = $permisos->groupBy('id_usuario');
             @endphp
-            <tr class="border-t hover:bg-gray-50">
-                <td class="p-2"></td>
-                <td class="p-2">{{ $documento->titulo }}</td>
-                <td class="p-2">
-                    @foreach ($niveles as $nivel)
-                        @php
-                            $color = match($nivel) {
-                                'lectura' => 'bg-blue-100 text-blue-700',
-                                'escritura' => 'bg-yellow-100 text-yellow-700',
-                                'eliminacion' => 'bg-red-100 text-red-700',
-                                default => 'bg-gray-100 text-gray-700'
-                            };
-                        @endphp
-                        <span class="px-2 py-1 rounded text-sm font-semibold {{ $color }}">
-                            {{ ucfirst($nivel) }}
-                        </span>
-                    @endforeach
-                </td>
-                <td class="p-2">
-                    <a href="{{ route('permisos.edit', $permisosGrupo->first()->id_permiso) }}"
-                       class="text-blue-600 hover:underline">Editar</a>
-                </td>
-            </tr>
-        @endforeach
-    @endforeach
-</tbody>
 
+            @foreach ($usuariosAgrupados as $usuarioId => $permisosPorUsuario)
+                @php
+                    $usuario = $permisosPorUsuario->first()->usuario;
+                    $documentosAgrupados = $permisosPorUsuario->groupBy('id_documento');
+                @endphp
+
+                {{-- Fila de resumen del usuario --}}
+                <tr class="bg-gray-100">
+                    <td colspan="4" class="p-2 font-bold text-[#155f82]">
+                        👤 {{ $usuario->nombre }} {{ $usuario->apellido }} — 
+                        <span class="text-sm text-gray-600">Documentos asignados: {{ $documentosAgrupados->count() }}</span>
+                    </td>
+                </tr>
+
+                {{-- Fila por cada documento asignado --}}
+                @foreach ($documentosAgrupados as $documentoId => $permisosGrupo)
+                    @php
+                        $documento = $permisosGrupo->first()->documento;
+                        $niveles = $permisosGrupo->pluck('nivel_acceso')->toArray();
+                    @endphp
+                    <tr class="border-t hover:bg-gray-50">
+                        <td class="p-2"></td>
+                        <td class="p-2">
+                            {{ preg_replace('/\[grupo=.*?\]/', '', $documento->titulo) }}
+                            <span class="text-sm text-gray-500 ml-1">
+                                (Versión {{ str_pad($documento->version, 3, '0', STR_PAD_LEFT) }})
+                            </span>
+                        </td>
+                        <td class="p-2">
+                            @foreach ($niveles as $nivel)
+                                @php
+                                    $color = match($nivel) {
+                                        'lectura' => 'bg-blue-100 text-blue-700',
+                                        'escritura' => 'bg-yellow-100 text-yellow-700',
+                                        'eliminacion' => 'bg-red-100 text-red-700',
+                                        default => 'bg-gray-100 text-gray-700'
+                                    };
+                                @endphp
+                                <span class="px-2 py-1 rounded text-sm font-semibold {{ $color }}">
+                                    {{ ucfirst($nivel) }}
+                                </span>
+                            @endforeach
+                        </td>
+                        <td class="p-2">
+                            <a href="{{ route('permisos.edit', $permisosGrupo->first()->id_permiso) }}"
+                            class="text-blue-600 hover:underline">Editar</a>
+                        </td>
+                    </tr>
+                @endforeach
+            @endforeach
+        </tbody>
     </table>
 </div>
 @endsection

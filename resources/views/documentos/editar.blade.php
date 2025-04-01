@@ -11,7 +11,11 @@
         {{-- Título --}}
         <div>
             <label for="titulo" class="block text-sm font-medium text-gray-700">Título</label>
-            <input type="text" name="titulo" id="titulo" value="{{ $documento->titulo }}" class="mt-1 block w-full border rounded px-3 py-2 shadow-sm focus:ring focus:ring-[#155f82]" required>
+            @php
+                $tituloLimpio = preg_replace('/\[grupo=.*?\]/', '', $documento->titulo);
+            @endphp
+
+            <input type="text" name="titulo" id="titulo" value="{{ $tituloLimpio }}" class="mt-1 block w-full border rounded px-3 py-2 shadow-sm focus:ring focus:ring-[#155f82]" required>
         </div>
 
         {{-- Descripción --}}
@@ -21,44 +25,18 @@
         </div>
 
         {{-- Estado --}}
-        <div>
-            <label for="estado" class="block text-sm font-medium text-gray-700">Estado</label>
-            <select name="estado" id="estado" class="mt-1 block w-full border rounded px-3 py-2 shadow-sm focus:ring focus:ring-[#155f82]" required>
-                <option value="borrador" {{ $documento->estado === 'borrador' ? 'selected' : '' }}>Borrador</option>
-                <option value="activo" {{ $documento->estado === 'activo' ? 'selected' : '' }}>Publicado</option>
-                <option value="archivado" {{ $documento->estado === 'archivado' ? 'selected' : '' }}>Archivado</option>
-            </select>
-        </div>
+        @php
+            use App\Enums\EstadoDocumento;
+        @endphp
 
-        {{-- Permisos para ADMIN --}}
-        @if(auth()->user()->rol === 'Administrador')
-        <div class="border-t pt-6">
-            <h4 class="text-lg font-bold mb-4 text-[#155f82]">🔐 Permisos Asignados por Usuario</h4>
-
-            @foreach ($usuarios as $usuario)
-            <div class="mb-4">
-                <p class="font-semibold text-gray-800">{{ $usuario->nombre }} {{ $usuario->apellido }}</p>
-                <div class="flex gap-4 mt-2 text-sm">
-                    <label class="flex items-center gap-1">
-                        <input type="checkbox" name="permisos[{{ $usuario->id_usuario }}][]" value="lectura"
-                            {{ in_array('lectura', $permisosActuales[$usuario->id_usuario] ?? []) ? 'checked' : '' }}>
-                        Lectura
-                    </label>
-                    <label class="flex items-center gap-1">
-                        <input type="checkbox" name="permisos[{{ $usuario->id_usuario }}][]" value="escritura"
-                            {{ in_array('escritura', $permisosActuales[$usuario->id_usuario] ?? []) ? 'checked' : '' }}>
-                        Escritura
-                    </label>
-                    <label class="flex items-center gap-1">
-                        <input type="checkbox" name="permisos[{{ $usuario->id_usuario }}][]" value="eliminacion"
-                            {{ in_array('eliminacion', $permisosActuales[$usuario->id_usuario] ?? []) ? 'checked' : '' }}>
-                        Eliminación
-                    </label>
-                </div>
-            </div>
+        <label for="estado" class="block text-sm font-medium text-gray-700">Estado</label>
+        <select name="estado" id="estado" class="...">
+            @foreach(\App\Enums\EstadoDocumento::cases() as $estado)
+                <option value="{{ $estado->value }}" {{ old('estado', $documento->estado ?? '') === $estado->value ? 'selected' : '' }}>
+                    {{ ucfirst($estado->value) }}
+                </option>
             @endforeach
-        </div>
-        @endif
+        </select>
 
         {{-- Botón --}}
         <div class="pt-6 border-t text-center">
