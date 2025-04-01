@@ -37,8 +37,6 @@ class DocumentosMiddleware
         $tienePermiso = Permiso::where('id_usuario', $usuario->id_usuario)
             ->where('id_documento', $documento->id_documento)
             ->exists();
-        \Log::info("Tiene permisos?");
-        \Log::info($tienePermiso);
 
         if ($tienePermiso) {
             return $next($request);

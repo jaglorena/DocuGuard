@@ -33,11 +33,7 @@ Route::middleware(['auth', RolMiddleware::class])->group(function () {
     Route::put('/permisos/{id}', [PermisoController::class, 'update'])->name('permisos.update');
 
     Route::delete('/permisos/{id}', [PermisoController::class, 'destroy'])->name('permisos.destroy');
-});
-
-Route::middleware([DocumentosMiddleware::class, 'auth'])->group(function () {
-    Route::put('/documentos/{id}', [DocumentoController::class, 'update'])->name('documentos.update');
-    Route::get('/documentos/{id}', [DocumentoController::class, 'show'])->name('documentos.show');
+    Route::get('/documentos/create', [DocumentoController::class, 'create'])->name('documentos.create');
 });
 
 Route::get('/dashboard', function () {
@@ -52,7 +48,7 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/documentos', [DocumentoController::class, 'index'])->name('documentos.index');
-    Route::get('/documentos/create', [DocumentoController::class, 'create'])->name('documentos.create');
+    Route::post('/documentos', [DocumentoController::class, 'store'])->name('documentos.store');
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
 
     Route::get('/reportes/documentos-csv', [ReporteController::class, 'descargarDocumentosCSV'])->name('reportes.documentos.csv');
@@ -66,4 +62,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reportes/estado', [ReporteController::class, 'verEstadoPDF'])->name('reportes.estado.vista');
     Route::get('/graficos', [GraficoController::class, 'index'])->name('graficos.index');
     Route::get('/reportes/data', [GraficoController::class, 'data'])->name('reportes.data');
+});
+
+Route::middleware([DocumentosMiddleware::class, 'auth'])->group(function () {
+    Route::put('/documentos/{id}', [DocumentoController::class, 'update'])->name('documentos.update');
+    Route::get('/documentos/{id}', [DocumentoController::class, 'show'])->name('documentos.show');
+    Route::get('/documentos/{id}/edit', [DocumentoController::class, 'edit'])->name('documentos.edit');
+    Route::delete('/documentos/{id}', [DocumentoController::class, 'destroy'])->name('documentos.destroy');
+
 });

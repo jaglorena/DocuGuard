@@ -85,6 +85,7 @@ class DocumentoController extends Controller
 
         foreach ($request->input('permisos', []) as $idUsuario => $niveles) {
             foreach ($niveles as $nivel) {
+                \Log::info($nivel);
                 Permiso::create([
                     'id_documento' => $documento->id_documento,
                     'id_usuario'   => $idUsuario,
@@ -99,12 +100,9 @@ class DocumentoController extends Controller
     public function show($id)
     {
         $documento = Documento::with('usuario')->findOrFail($id);
-        \Log::info("Valor de docuento!!!");
-        \Log::info($documento);
-        $grupo = $this->obtenerGrupoDesdeTitulo($documento->titulo);
-        \Log::info("Valor de grupo!!!");
-        \Log::info($grupo);
-        $versiones = Documento::where('titulo', 'like', "%$grupo%")
+        $grupo     = $this->obtenerGrupoDesdeTitulo($documento->titulo);
+
+        $versiones = Documento::where('titulo', 'like', "%[grupo={$grupo}]%")
             ->orderByDesc('version')
             ->get();
 

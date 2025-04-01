@@ -33,14 +33,9 @@
     {{-- Mostrar solo la(s) versión(es) que el usuario tiene asignadas --}}
     @if(strtolower(auth()->user()->rol) !== 'administrador')
         @php
-            \Log::info("Versiones: ");
-            \Log::info($versiones);
-
             $versionesConPermiso = $versiones->filter(function ($v) {
                 return auth()->user()->tienePermiso($v->id_documento, 'lectura') && $v->ruta_archivo;
             });
-            \Log::info("Versiones con permisos: ");
-            \Log::info($versionesConPermiso);
         @endphp
 
         @if($versionesConPermiso->isNotEmpty())
