@@ -1,4 +1,4 @@
-@extends('Usuario.layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="bg-white p-6 rounded shadow max-w-xl mx-auto">
@@ -11,7 +11,7 @@
         <input type="text" name="apellido" placeholder="Apellido" class="w-full mb-3 p-2 border rounded" required>
         <input type="email" name="correo" placeholder="Correo electrónico" class="w-full mb-3 p-2 border rounded" required>
         <input type="password" name="password" placeholder="Contraseña" class="w-full mb-3 p-2 border rounded" required>
-        
+
         <select name="rol" class="w-full mb-4 p-2 border rounded" required>
             <option value="Usuario">Usuario</option>
             <option value="Administrador">Administrador</option>

@@ -21,6 +21,7 @@ Route::middleware(['auth', RolMiddleware::class])->group(function () {
 
     Route::resource('usuarios', UsuarioController::class);
     Route::get('/usuarios/{usuario}/cambiar-password', [UsuarioController::class, 'formCambiarPassword'])->name('usuarios.cambiar-password.form');
+    Route::get('/usuarios/{usuario}', [UsuarioController::class, 'show'])->name('usuarios.show');
     Route::put('/usuarios/{usuario}/cambiar-password', [UsuarioController::class, 'cambiarPassword'])->name('usuarios.cambiar-password');
 
     Route::get('/permisos', [PermisoController::class, 'index'])->name('permisos.index');
@@ -51,6 +52,7 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/documentos', [DocumentoController::class, 'index'])->name('documentos.index');
+    Route::get('/documentos/create', [DocumentoController::class, 'create'])->name('documentos.create');
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
 
     Route::get('/reportes/documentos-csv', [ReporteController::class, 'descargarDocumentosCSV'])->name('reportes.documentos.csv');
@@ -62,6 +64,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reportes/permisos', [ReporteController::class, 'verPermisosPDF'])->name('reportes.permisos.vista');
     Route::get('/reportes/actividad', [ReporteController::class, 'verActividadPDF'])->name('reportes.actividad.vista');
     Route::get('/reportes/estado', [ReporteController::class, 'verEstadoPDF'])->name('reportes.estado.vista');
-    Route::get('/graficos', [GraficoController::class, 'index'])->name('Graficos.index');
+    Route::get('/graficos', [GraficoController::class, 'index'])->name('graficos.index');
     Route::get('/reportes/data', [GraficoController::class, 'data'])->name('reportes.data');
 });

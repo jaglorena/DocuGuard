@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Usuario;
@@ -22,19 +21,19 @@ class UsuarioController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string',
+            'nombre'   => 'required|string',
             'apellido' => 'required|string',
-            'correo' => 'required|email|unique:usuarios,correo',
+            'correo'   => 'required|email|unique:usuarios,correo',
             'password' => 'required|min:6',
-            'rol' => 'required',
+            'rol'      => 'required',
         ]);
 
         Usuario::create([
-            'nombre' => $request->nombre,
+            'nombre'   => $request->nombre,
             'apellido' => $request->apellido,
-            'correo' => $request->correo,
-            'clave' => Hash::make($request->password),
-            'rol' => $request->rol,
+            'correo'   => $request->correo,
+            'clave'    => Hash::make($request->password),
+            'rol'      => $request->rol,
         ]);
 
         return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente.');
@@ -51,17 +50,17 @@ class UsuarioController extends Controller
         $usuario = Usuario::findOrFail($id);
 
         $request->validate([
-            'nombre' => 'required|string',
+            'nombre'   => 'required|string',
             'apellido' => 'required|string',
-            'correo' => 'required|email|unique:usuarios,correo,' . $usuario->id_usuario . ',id_usuario',
-            'rol' => 'required',
+            'correo'   => 'required|email|unique:usuarios,correo,' . $usuario->id_usuario . ',id_usuario',
+            'rol'      => 'required',
         ]);
 
         $usuario->update([
-            'nombre' => $request->nombre,
+            'nombre'   => $request->nombre,
             'apellido' => $request->apellido,
-            'correo' => $request->correo,
-            'rol' => $request->rol,
+            'correo'   => $request->correo,
+            'rol'      => $request->rol,
         ]);
 
         return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado.');
@@ -76,19 +75,26 @@ class UsuarioController extends Controller
     public function cambiarPassword(Request $request, $id)
     {
         $request->validate([
-            'password' => 'required|min:6|confirmed'
+            'password' => 'required|min:6|confirmed',
         ]);
 
-        $usuario = Usuario::findOrFail($id);
+        $usuario        = Usuario::findOrFail($id);
         $usuario->clave = Hash::make($request->password);
         $usuario->save();
 
         return redirect()->route('usuarios.index')->with('success', 'Contraseña actualizada.');
     }
     public function formCambiarPassword($id)
-{
-    $usuario = Usuario::findOrFail($id);
-    return view('Usuario.usuarios.password', compact('usuario'));
-}
+    {
+        $usuario = Usuario::findOrFail($id);
+        return view('Usuario.usuarios.password', compact('usuario'));
+    }
+
+    public function show($id)
+    {
+        $usuario = Usuario::findOrFail($id);
+
+        return view('Usuario.usuarios.show', compact('usuario'));
+    }
 
 }
